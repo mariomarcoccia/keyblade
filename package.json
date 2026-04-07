@@ -1,0 +1,42 @@
+{
+  "name": "keyblade",
+  "version": "1.0.0",
+  "description": "CLI setup tool for Claude Code - autonomous workflows, agents, hooks and commands",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "keyblade": "dist/bin/install.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "files": [
+    "dist",
+    "config"
+  ],
+  "keywords": [
+    "claude",
+    "claude-code",
+    "anthropic",
+    "ai",
+    "config",
+    "workflow",
+    "cli"
+  ],
+  "author": "Mario Marcoccia",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mariomarcoccia/keyblade.git"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0",
+    "@types/node": "^20.0.0"
+  },
+  "dependencies": {
+    "zod": "^3.23.0"
+  }
+}
