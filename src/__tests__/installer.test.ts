@@ -12,9 +12,16 @@ function createMockConfig(dir: string): string {
   const configDir = join(dir, 'mock-config');
   mkdirSync(join(configDir, 'skills'), { recursive: true });
   mkdirSync(join(configDir, 'agents'), { recursive: true });
+  mkdirSync(join(configDir, 'hooks'), { recursive: true });
   writeFileSync(join(configDir, 'CLAUDE.md'), '# Test');
+  writeFileSync(join(configDir, 'ARCHITECTURE.md'), '# Architecture');
   writeFileSync(join(configDir, 'skills', 'build.md'), '# Build');
   writeFileSync(join(configDir, 'agents', 'code-reviewer.md'), '# Reviewer');
+  writeFileSync(join(configDir, 'hooks', 'stop-guard.sh'), '#!/bin/bash\nexit 0');
+  writeFileSync(
+    join(configDir, 'settings-template.json'),
+    JSON.stringify({ hooks: { Stop: [] } }),
+  );
   return configDir;
 }
 
@@ -45,8 +52,10 @@ describe('install', () => {
 
     expect(existsSync(join(targetDir, '.claude'))).toBe(true);
     expect(existsSync(join(targetDir, '.claude', 'CLAUDE.md'))).toBe(true);
+    expect(existsSync(join(targetDir, '.claude', 'ARCHITECTURE.md'))).toBe(true);
     expect(existsSync(join(targetDir, '.claude', 'skills', 'build.md'))).toBe(true);
     expect(existsSync(join(targetDir, '.claude', 'agents', 'code-reviewer.md'))).toBe(true);
+    expect(existsSync(join(targetDir, '.claude', 'hooks', 'stop-guard.sh'))).toBe(true);
     expect(result.filesInstalled).toBeGreaterThan(0);
   });
 
@@ -82,5 +91,34 @@ describe('install', () => {
 
     const result = install({ targetDir, configSourceDir: configDir, force: true });
     expect(result.filesInstalled).toBeGreaterThan(0);
+  });
+
+  it('installs settings.json from template', () => {
+    const result = install({ targetDir, configSourceDir: configDir });
+
+    const settingsPath = join(targetDir, '.claude', 'settings.json');
+    expect(existsSync(settingsPath)).toBe(true);
+    expect(result.settingsInstalled).toBe(true);
+
+    const settings = JSON.parse(readFileSync(settingsPath, 'utf-8'));
+    expect(settings.hooks).toBeDefined();
+  });
+
+  it('does not overwrite existing settings.json', () => {
+    mkdirSync(join(targetDir, '.claude'), { recursive: true });
+    const settingsPath = join(targetDir, '.claude', 'settings.json');
+    writeFileSync(settingsPath, '{"custom": true}');
+
+    const result = install({ targetDir, configSourceDir: configDir, force: true });
+
+    const settings = JSON.parse(readFileSync(settingsPath, 'utf-8'));
+    expect(settings.custom).toBe(true);
+    expect(result.settingsInstalled).toBe(false);
+  });
+
+  it('does not copy settings-template.json as a regular file', () => {
+    install({ targetDir, configSourceDir: configDir });
+
+    expect(existsSync(join(targetDir, '.claude', 'settings-template.json'))).toBe(false);
   });
 });

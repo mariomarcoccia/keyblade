@@ -37,10 +37,25 @@ For each file in `services/`, `utils/`, `api/`:
 
 Run agents in sequence:
 
-1. **code-reviewer** (BLOCKING) - Security, types, bugs
-2. **commit-guardian** (BLOCKING) - Conventional commits, size limits
-3. **pr-hygiene** (non-blocking) - PR quality
-4. **functional-validator** (BLOCKING) - Runtime behavior
+1. **test-fixer** (BLOCKING) — Run tests, fix failures, create missing tests (baseline)
+2. **code-simplifier** (non-blocking) — Clarity, DRY, patterns
+3. **performance-reviewer** (non-blocking, unless CRITICAL_PERF) — N+1 queries, unbounded loads
+4. **code-reviewer** with scope flags (BLOCKING) — Security, typing, bugs
+
+   Compute scope flags:
+   ```bash
+   CHANGED=$(git diff origin/main...HEAD --name-only)
+   # SCOPE_AUTH if auth/jwt/session files changed
+   # SCOPE_API if routes/api/controllers files changed
+   # SCOPE_MIGRATIONS if migration/schema files changed
+   ```
+
+5. **red-team** (BLOCKING) — Pass code-reviewer findings, adversarial review
+6. **test-auditor** (BLOCKING if critical path has zero tests) — Coverage + quality scoring
+7. **test-fixer** (BLOCKING) — Post-review: fix any new issues, integrate red-team stubs, apply auditor findings
+8. **commit-guardian** (BLOCKING) — Conventional commits, size limits
+9. **pr-hygiene** (non-blocking) — PR quality
+10. **functional-validator** (BLOCKING, if UI changes) — Playwright browser testing
 
 ---
 
@@ -50,9 +65,18 @@ Run agents in sequence:
 
 | Agent | Status | Issues | Blocking |
 |-------|--------|--------|----------|
+| test-fixer (baseline) | PASS/FAIL | n | Yes |
+| code-simplifier | PASS/FAIL | n | No |
+| performance-reviewer | PASS/FAIL | n | No* |
 | code-reviewer | PASS/FAIL | n | Yes |
+| red-team | PASS/FAIL | n | Yes |
+| test-auditor | PASS/FAIL | n | Yes* |
+| test-fixer (verification) | PASS/FAIL | n | Yes |
 | commit-guardian | PASS/FAIL | n | Yes |
 | pr-hygiene | PASS/FAIL | n | No |
 | functional-validator | PASS/FAIL | n | Yes |
+
+*performance-reviewer becomes blocking when CRITICAL_PERF=true
+*test-auditor becomes blocking when critical path has zero tests
 
 **Verdict:** PASS (all blocking agents passed) | FAIL (blocking issues found)

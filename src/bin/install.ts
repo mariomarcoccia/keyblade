@@ -41,11 +41,12 @@ async function main(): Promise<void> {
 
   console.log('\nkeyblade - Claude Code Setup\n');
   console.log('This will install to ./.claude/:');
-  console.log('  - CLAUDE.md (rules: conventional commits, strict TS, Zod)');
+  console.log('  - CLAUDE.md + ARCHITECTURE.md (rules and system docs)');
   console.log('  - skills/ (build, resolve, gate, deliberate)');
-  console.log('  - agents/ (8 specialized subagents)');
-  console.log('  - hooks/ (continuity, session-recovery, stop-guard, empty-guard)');
+  console.log('  - agents/ (13 specialized subagents)');
+  console.log('  - hooks/ (6 executable shell scripts)');
   console.log('  - commands/ (gate)');
+  console.log('  - settings.json (hook configuration)');
   console.log('\nAlso generates .keyblade/config.json with stack detection.\n');
 
   const claudeDir = join(targetDir, '.claude');
